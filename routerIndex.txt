@@ -29,7 +29,7 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'Admin', // Administracion
+    name: 'Admin',
     // route level code-splitting
     // this generates a separate chunk (admin.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
@@ -43,29 +43,22 @@ const routes = [
     // indica que se parte desde la ruta raiz
     children: [
       {
-        path: 'users', // /admin/user
-        name: 'Users',
-        // La ruta a una vista es lo apropiado
-        component: () => import(/* webpackChunkName: "usuarios" */ '../components/UsersDT.vue'),
+        path: 'user', // /admin/user
+        name: 'User',
         meta: {
-          // ruta solo disponible para el rol administrador
-          Administrator: true
-          // Es posible modificar este campo a traves de gestor
+          Administrator: true // ruta solo disponible para el rol administrador
         }
       },
       {
-        path: 'categories', // /admin/category
-        name: 'Categories',
-        component: () => import(/* webpackChunkName: "categorias" */ '../components/CategoriesDT.vue')
+        path: 'category', // /admin/category
+        name: 'Category',
       },
       {
         path: 'articles', // /admin/articles
         name: 'Articles',
-        component: () => import(/* webpackChunkName: "articulos" */ '../components/ArticlesDT.vue')
       }
     ]
-  },
-
+  }
 ]
 
 const router = new VueRouter({
@@ -90,35 +83,16 @@ router.beforeEach((to, from, next) => {
     // encuentra dentro del paquete jwt-decode, el cual se debe tener instaladao
     // El presente proyecto se creo con el gestor de paquetes yarn (no npm), por
     // ello el paquete jwt-decode debe instalarse con la instruccion yarn add jwt-decode
-    // let nudeToken = decode(localStorage.getItem('token'));
-    // Se decidio utilizar el token directamente y hacer internamente el decode
-    let token = localStorage.getItem('token');
-    if (!token) {
+    let nudeToken = decode(localStorage.getItem('token',));
+    // Si no se ingresa un token valido en decode este retorna un campo vacio o undefined
+    if (!nudeToken) {
       next({
         // Si el token no existe se vuelve al route record 'Login'
         name: 'Login',
       })
     } else {
       // Si el token existe se permite el acceso a la ruta ('/admin' en este caso)
-      // Siempre y cuando el rol dentro del token sea de administrador, para ello
-      // revisamos el token
-      if (to.matched.some(record => record.meta.Administrator)) {
-        // Si no se ingresa un token valido en decode retorna un campo vacio o undefined
-        // Para ingresar dentro de este if se requiere un intento acceso a la ruta usuario
-        console.log('intento de acceso a /user');
-        if (decode(token).rol === "administrador") {
-          console.log('acceso exitoso /user');
-          next();
-        } else {
-          // Existe un token pero con rol diferente de Administrador,
-          // por ello, regrese a la pantalla 'Admin'
-          next({
-            name: 'Admin'
-          })
-        }
-      } else {
-        next();
-      }
+      next()
     }
   } else {
     // Sino el campo requiresAuth no existe o es false, entonces se accede a la ruta
