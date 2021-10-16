@@ -39,7 +39,7 @@
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="8">
+                    <v-col cols="12" sm="4">
                       <v-text-field
                         v-model="editedArticle.name"
                         :rules="[(v) => !!v || 'Name is required']"
@@ -58,8 +58,19 @@
                       ></v-text-field>
                     </v-col>
 
+                    <v-col cols="12" sm="4">
+                      <v-select
+                        v-model="editedArticle.categoria"
+                        :items="categorias"
+                        :rules="[(v) => !!v || 'Category name is required']"
+                        label="Category name"
+                        required
+                      ></v-select>
+                    </v-col>
+
                     <v-col cols="12">
                       <v-text-field
+                      counter="255"
                         v-model="editedArticle.description"
                         :rules="[(v) => !!v || 'Description is required']"
                         label="Description"
@@ -138,15 +149,7 @@ import axios from "axios";
 export default {
   name: "ArticlesDT",
   data: () => ({
-    tipos: [
-      "ciclomotor",
-      "cruiser",
-      "scooter",
-      "motocroos",
-      "enduro",
-      "chopper",
-      "trial",
-    ], // en minuscula deben estar
+    categorias: [], // en minuscula deben estar
     states: [1, 0],
     emailRules: [
       (v) => !!v || "E-mail is required",
@@ -209,16 +212,30 @@ export default {
   },
 
   created() {
+    this.listCategories();
     this.list();
   },
 
   methods: {
     listCategories() {
+      // Lista solo las categorias activas
+      // Se mapea el contenido de la variable actCat, la cual contiene las categorias activas,
+      // hacia el arreglo categorias, el cual contendra un campo text: value por cada cotegoria
+      // activa; cada item text sera una llave cuyo nombre sera el nombre de cada categoria, y
+      // su respectivo valor sera el item value  que contendra los respectivos _id de cada categoria 
       axios
-        .get("http://localhost:3000/api/categoria/list")
+        .get("http://localhost:3000/api/categoria/listactive")
         .then((res) => {
           // handle success
-          this.articles = res.data;
+          let actCat = res.data
+          // Se usa un metodo para convertir datos a otro formato
+          actCat.map((cat) => {
+            this.categorias.push({
+              text: cat.name,
+              value: cat._id
+            })
+
+          })
           this.loading = false;
         })
         .catch(function (error) {
@@ -333,6 +350,7 @@ export default {
             name: this.editedArticle.name,
             description: this.editedArticle.description,
             code: this.editedArticle.code,
+            categoria: this.editedArticle.categoria
           })
           .then((res) => {
             // EL metodo list trae la coleccion completa desde la BD
@@ -352,6 +370,7 @@ export default {
             name: this.editedArticle.name,
             description: this.editedArticle.description,
             code: this.editedArticle.code,
+            categoria: this.editedArticle.categoria
             // Puesto que se trata de un nuevo registro
             // no se debe tomar el _id del editedArticle
             // console.log(response);

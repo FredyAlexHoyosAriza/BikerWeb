@@ -61,12 +61,11 @@
                     <v-col cols="12">
                       <v-text-field
                         v-model="editedCategory.description"
-                        :rules="[v => !!v || 'Description is required']"
+                        :rules="[(v) => !!v || 'Description is required']"
                         label="Description"
                         required
                       ></v-text-field>
                     </v-col>
-
                   </v-row>
                 </v-container>
               </v-card-text>
@@ -139,7 +138,8 @@ import axios from "axios";
 export default {
   name: "CategoriesDT",
   data: () => ({
-    tipos: ["ciclomotor", "cruiser", "scooter", "motocroos", "enduro", "chopper", "trial"], // en minuscula deben estar
+    // tipos: ["ciclomotor", "cruiser", "scooter", "motocroos", "enduro", "chopper", "trial"], // en minuscula deben estar
+    tipos: [],
     states: [1, 0],
     emailRules: [
       (v) => !!v || "E-mail is required",
@@ -196,10 +196,32 @@ export default {
   },
 
   created() {
+    this.listCategories();
     this.list();
   },
 
   methods: {
+    listCategories() {
+      // Lista solo las categorias activas
+      // Se mapea el contenido de la variable actCat, la cual contiene las categorias activas,
+      // hacia el arreglo categorias, el cual contendra un campo text: value por cada cotegoria
+      // activa; cada item text sera una llave cuyo nombre sera el nombre de cada categoria, y
+      // su respectivo valor sera el item value  que contendra los respectivos _id de cada categoria
+      axios
+        .get("http://localhost:3000/api/categoria/listactive")
+        .then((res) => {
+          // handle success
+          let actCat = res.data;
+          // Se usa un metodo para convertir datos a otro formato
+          actCat.map((cat) => {
+            this.tipos.push({ text: cat.name });
+          });
+          this.loading = false;
+        })
+        .catch(function (error) {
+          return error.message;
+        });
+    },
     list() {
       // Make a request for a category with a given ID
       axios
